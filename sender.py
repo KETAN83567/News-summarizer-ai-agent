@@ -13,6 +13,27 @@ from timeutils import now_in_timezone
 SIGNAL_COLOR = {"HIGH": "#b42318", "MEDIUM": "#b54708"}
 
 
+def normalize_app_password(value: str) -> str:
+    return "".join(value.split())
+
+
+def _gmail_login(server: smtplib.SMTP, settings: dict) -> None:
+    password = normalize_app_password(settings["gmail_app_password"])
+    if len(password) != 16:
+        raise RuntimeError(
+            "GMAIL_APP_PASSWORD must be Google's 16-character App Password, "
+            "not your normal Gmail password."
+        )
+    try:
+        server.login(settings["gmail_address"].strip(), password)
+    except smtplib.SMTPAuthenticationError as exc:
+        raise RuntimeError(
+            "Gmail rejected GMAIL_ADDRESS/GMAIL_APP_PASSWORD. Generate a new "
+            "16-character App Password from the same Google account used in "
+            "GMAIL_ADDRESS, update the GitHub secret, and run again."
+        ) from exc
+
+
 def render_text(digest: dict) -> str:
     lines = [
         "YOUR MORNING INTELLIGENCE BRIEF",
@@ -138,7 +159,7 @@ def send_digest(digest: dict, settings: dict) -> None:
     context = ssl.create_default_context()
     with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as server:
         server.starttls(context=context)
-        server.login(settings["gmail_address"], settings["gmail_app_password"])
+        _gmail_login(server, settings)
         server.send_message(message)
 
 
@@ -168,5 +189,5 @@ def send_alert(article, settings: dict) -> None:
     context = ssl.create_default_context()
     with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as server:
         server.starttls(context=context)
-        server.login(settings["gmail_address"], settings["gmail_app_password"])
+        _gmail_login(server, settings)
         server.send_message(message)
