@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.py[cod]
+data/
+output/
+.pytest_cache/
+.idea/
+.vscode/

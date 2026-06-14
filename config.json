@@ -1,0 +1,38 @@
+{
+  "profile": {
+    "name": "",
+    "location": "India",
+    "occupation": "",
+    "interests": [
+      "artificial intelligence",
+      "technology",
+      "India",
+      "global affairs"
+    ],
+    "priority_topics": [
+      "generative AI",
+      "LLMs",
+      "AI agents",
+      "startups",
+      "business",
+      "geopolitics"
+    ],
+    "avoid_topics": [
+      "celebrity gossip",
+      "sports match recaps"
+    ],
+    "briefing_style": "direct, analytical, useful, no hype"
+  },
+  "stories_per_category": 5,
+  "max_age_hours": 48,
+  "source_policy": {
+    "strict": true,
+    "minimum_tier": 2
+  },
+  "alerts": {
+    "enabled": true,
+    "minimum_score": 10.5,
+    "minimum_sources": 2,
+    "cooldown_hours": 6
+  }
+}
