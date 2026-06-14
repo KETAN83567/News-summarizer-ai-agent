@@ -218,9 +218,9 @@ def _compact_card(story: dict, style: dict) -> str:
       style="margin-top:14px;background:#ffffff;border:1px solid #e4e7ec;
       border-radius:16px;">
       <tr>
-        <td width="132" class="compact-visual" valign="top"
-          style="padding:14px 0 14px 14px;">{visual}</td>
-        <td class="compact-copy" valign="top" style="padding:15px 16px;">
+        <td width="150" valign="middle"
+          style="width:150px;padding:14px 0 14px 14px;">{visual}</td>
+        <td valign="middle" style="padding:15px 18px;">
           <div style="font-size:10px;font-weight:800;letter-spacing:.7px;
             color:{style['accent']};">
             {html.escape(story.get('signal', 'MEDIUM'))} &middot;
@@ -241,6 +241,116 @@ def _compact_card(story: dict, style: dict) -> str:
     """
 
 
+def _mobile_feature_card(story: dict, style: dict) -> str:
+    image_url = story.get("image_url", "")
+    visual = (
+        f'<img src="{html.escape(image_url, quote=True)}" width="100%" height="190" alt="" '
+        'style="display:block;width:100%;height:190px;object-fit:cover;border:0;">'
+        if image_url
+        else f"""
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+          style="background:{style['dark']};">
+          <tr>
+            <td height="190" align="center" valign="middle"
+              style="height:190px;color:#ffffff;padding:0 20px;">
+              <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;opacity:.7;">
+                MORNING INTELLIGENCE
+              </div>
+              <div style="font-size:34px;font-weight:800;line-height:1;margin-top:10px;">
+                {html.escape(style['eyebrow'])}
+              </div>
+            </td>
+          </tr>
+        </table>
+        """
+    )
+    evidence_count = len(story.get("evidence_sources", [])) or 1
+    return f"""
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+      style="background:#ffffff;border:1px solid #e4e7ec;border-radius:16px;overflow:hidden;">
+      <tr><td>{visual}</td></tr>
+      <tr>
+        <td style="padding:17px 17px 18px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+            <tr>
+              <td style="font-size:10px;font-weight:800;letter-spacing:.7px;
+                color:{style['accent']};">
+                {html.escape(story.get('signal', 'MEDIUM'))} SIGNAL
+              </td>
+              <td align="right" style="font-size:10px;color:#667085;">
+                {html.escape(story['source'])} &middot; {evidence_count} source(s)
+              </td>
+            </tr>
+          </table>
+          <h3 style="font-size:22px;line-height:1.18;letter-spacing:-.35px;
+            margin:12px 0 9px;color:#101828;">{html.escape(story['headline'])}</h3>
+          <p style="font-size:14px;line-height:1.58;margin:0;color:#475467;">
+            {html.escape(story['summary'])}
+          </p>
+          <div style="margin-top:15px;padding:13px 14px;background:{style['soft']};
+            border-left:4px solid {style['accent']};border-radius:0 9px 9px 0;
+            color:#344054;font-size:12px;line-height:1.5;">
+            <strong style="color:{style['dark']};">Why it matters</strong><br>
+            {html.escape(story['why_it_matters'])}
+          </div>
+          <p style="font-size:11px;line-height:1.45;color:#667085;margin:14px 0 0;">
+            <strong style="color:#344054;">Watch next:</strong>
+            {html.escape(story['watch_next'])}
+          </p>
+          <a href="{html.escape(story['url'], quote=True)}"
+            style="display:block;margin-top:15px;padding:13px 16px;border-radius:999px;
+            background:#101828;color:#ffffff;text-align:center;text-decoration:none;
+            font-size:12px;font-weight:800;">Read full story &rarr;</a>
+        </td>
+      </tr>
+    </table>
+    """
+
+
+def _mobile_compact_card(story: dict, style: dict) -> str:
+    image_url = story.get("image_url", "")
+    visual = (
+        f'<img src="{html.escape(image_url, quote=True)}" width="100%" height="150" alt="" '
+        'style="display:block;width:100%;height:150px;object-fit:cover;border:0;">'
+        if image_url
+        else f"""
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+          style="background:{style['dark']};">
+          <tr>
+            <td height="112" align="center" valign="middle"
+              style="height:112px;color:#ffffff;font-size:20px;font-weight:800;
+              letter-spacing:1.5px;">{html.escape(style['eyebrow'])}</td>
+          </tr>
+        </table>
+        """
+    )
+    return f"""
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+      style="margin-top:12px;background:#ffffff;border:1px solid #e4e7ec;
+      border-radius:14px;overflow:hidden;">
+      <tr><td>{visual}</td></tr>
+      <tr>
+        <td style="padding:14px 15px 15px;">
+          <div style="font-size:9px;font-weight:800;letter-spacing:.7px;
+            color:{style['accent']};">
+            {html.escape(story.get('signal', 'MEDIUM'))} &middot;
+            {html.escape(story['source'])}
+          </div>
+          <h3 style="font-size:18px;line-height:1.25;margin:7px 0;color:#101828;">
+            {html.escape(story['headline'])}
+          </h3>
+          <p style="font-size:12px;line-height:1.5;margin:0;color:#667085;">
+            {html.escape(story['summary'])}
+          </p>
+          <a href="{html.escape(story['url'], quote=True)}"
+            style="display:inline-block;margin-top:10px;color:{style['accent']};
+            text-decoration:none;font-size:11px;font-weight:800;">Open report &rarr;</a>
+        </td>
+      </tr>
+    </table>
+    """
+
+
 def render_html(digest: dict, settings: dict) -> str:
     now = now_in_timezone(settings["timezone"])
     name = settings["profile"].get("name")
@@ -250,9 +360,15 @@ def render_html(digest: dict, settings: dict) -> str:
     for key, (title, subtitle) in SECTION_META.items():
         stories = digest.get("sections", {}).get(key, [])
         style = SECTION_STYLE[key]
-        cards = (
+        desktop_cards = (
             _feature_card(stories[0], style)
             + "".join(_compact_card(story, style) for story in stories[1:])
+            if stories
+            else '<p style="color:#667085;font-size:14px;">No high-value new stories.</p>'
+        )
+        mobile_cards = (
+            _mobile_feature_card(stories[0], style)
+            + "".join(_mobile_compact_card(story, style) for story in stories[1:])
             if stories
             else '<p style="color:#667085;font-size:14px;">No high-value new stories.</p>'
         )
@@ -267,7 +383,9 @@ def render_html(digest: dict, settings: dict) -> str:
                   <h2 style="font-size:28px;letter-spacing:-.5px;margin:5px 0 4px;
                     color:#101828;">{title}</h2>
                   <p style="font-size:13px;margin:0 0 17px;color:#667085;">{subtitle}</p>
-                  {cards}
+                  <div class="desktop-feed">{desktop_cards}</div>
+                  <div class="mobile-feed" style="display:none;max-height:0;
+                    overflow:hidden;mso-hide:all;">{mobile_cards}</div>
                 </td>
               </tr>
             </table>
@@ -317,13 +435,20 @@ def render_html(digest: dict, settings: dict) -> str:
       .shell {{ border-radius:0 !important; }}
       .content-pad {{ padding:28px 18px 36px !important; }}
       .header-pad {{ padding:22px 18px !important; }}
-      .compact-visual {{ width:96px !important; }}
-      .compact-visual img, .compact-fallback {{
-        width:96px !important;
-        height:104px !important;
-        line-height:104px !important;
+      .desktop-feed {{
+        display:none !important;
+        max-height:0 !important;
+        overflow:hidden !important;
+        mso-hide:all !important;
       }}
-      .compact-copy {{ padding:13px 12px !important; }}
+      .mobile-feed {{
+        display:block !important;
+        max-height:none !important;
+        overflow:visible !important;
+      }}
+      .mobile-feed table {{ width:100% !important; }}
+      .mobile-feed img {{ width:100% !important; }}
+      .mobile-title {{ font-size:32px !important; }}
     }}
   </style>
 </head>
@@ -361,7 +486,7 @@ def render_html(digest: dict, settings: dict) -> str:
           </tr>
           <tr>
             <td class="content-pad" style="padding:36px 32px 42px;">
-              <h1 style="font-size:38px;line-height:1.08;letter-spacing:-1.2px;
+              <h1 class="mobile-title" style="font-size:38px;line-height:1.08;letter-spacing:-1.2px;
                 margin:0;color:#101828;">{greeting}.</h1>
               <p style="font-size:17px;line-height:1.65;color:#475467;margin:15px 0 0;">
                 {html.escape(digest.get('executive_summary', ''))}

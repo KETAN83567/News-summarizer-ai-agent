@@ -62,6 +62,9 @@ class DigestTests(unittest.TestCase):
         self.assertIn(self.article.url, rendered)
         self.assertIn(self.article.image_url, rendered)
         self.assertIn("THE DAILY SIGNAL", rendered)
+        self.assertIn('class="desktop-feed"', rendered)
+        self.assertIn('class="mobile-feed"', rendered)
+        self.assertIn("@media only screen and (max-width:600px)", rendered)
 
     def test_preview_is_written(self):
         hydrated, _ = hydrate_digest(
