@@ -132,7 +132,7 @@ memory between runs and retains each preview and run log for seven days.
    - `GEMINI_API_KEY`
    - `GMAIL_ADDRESS`
    - `GMAIL_APP_PASSWORD`
-   - `DIGEST_RECIPIENT`
+   - `DIGEST_RECIPIENT` (optional; defaults to `GMAIL_ADDRESS`)
    - `NEWS_API_KEY` (optional)
 
 4. Open **Actions > Morning Intelligence > Run workflow**. Select `dry_run`

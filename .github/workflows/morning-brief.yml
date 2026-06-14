@@ -64,7 +64,7 @@ jobs:
           import os
           import sys
 
-          required = ["GMAIL_ADDRESS", "GMAIL_APP_PASSWORD", "DIGEST_RECIPIENT"]
+          required = ["GMAIL_ADDRESS", "GMAIL_APP_PASSWORD"]
           missing = [name for name in required if not os.environ.get(name)]
           if missing:
               print("Missing GitHub Actions secrets: " + ", ".join(missing))
