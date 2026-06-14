@@ -17,6 +17,7 @@ class DigestTests(unittest.TestCase):
             source="Example News",
             published_at=datetime.now(timezone.utc),
             category="ai_tech",
+            image_url="https://example.com/story.jpg",
         )
         self.digest = {
             "executive_summary": "A concise synthesis.",
@@ -57,7 +58,10 @@ class DigestTests(unittest.TestCase):
             {"global": [], "india": [], "ai_tech": [self.article]},
         )
         self.assertIn(self.article.url, render_text(hydrated))
-        self.assertIn(self.article.url, render_html(hydrated, self.settings))
+        rendered = render_html(hydrated, self.settings)
+        self.assertIn(self.article.url, rendered)
+        self.assertIn(self.article.image_url, rendered)
+        self.assertIn("THE DAILY SIGNAL", rendered)
 
     def test_preview_is_written(self):
         hydrated, _ = hydrate_digest(
@@ -68,7 +72,7 @@ class DigestTests(unittest.TestCase):
             path = Path(directory) / "preview.html"
             save_preview(hydrated, self.settings, path)
             self.assertTrue(path.exists())
-            self.assertIn("MORNING INTELLIGENCE", path.read_text(encoding="utf-8"))
+            self.assertIn("THE DAILY SIGNAL", path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

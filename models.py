@@ -35,6 +35,7 @@ class Article:
     source: str
     published_at: datetime
     category: str
+    image_url: str = ""
     score: float = 0.0
     score_reasons: tuple[str, ...] = ()
     corroborating_sources: tuple[str, ...] = ()
@@ -63,6 +64,7 @@ class Article:
             "source": self.source,
             "published_at": self.published_at.isoformat(),
             "url": self.url,
+            "image_url": self.image_url,
             "ranking_score": round(self.score, 2),
             "ranking_reasons": list(self.score_reasons),
             "corroborating_sources": list(self.corroborating_sources),

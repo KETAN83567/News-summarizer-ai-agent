@@ -162,6 +162,7 @@ def hydrate_digest(
             story["url"] = article.url
             story["source"] = article.source
             story["published_at"] = article.published_at.isoformat()
+            story["image_url"] = article.image_url
             story["confidence"] = article.confidence
             story["evidence_sources"] = list(article.corroborating_sources)
             story["evidence_urls"] = list(article.corroborating_urls)

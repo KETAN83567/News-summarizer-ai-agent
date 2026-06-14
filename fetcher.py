@@ -18,6 +18,7 @@ TAG_RE = re.compile(r"<[^>]+>")
 SPACE_RE = re.compile(r"\s+")
 INVISIBLE_RE = re.compile(r"[\u200b-\u200f\u202a-\u202e\u2060\ufeff]")
 SOURCE_NORMALIZE_RE = re.compile(r"[^a-z0-9]+")
+BLOCKED_EMBED_HOSTS = {"c.ndtvimg.com"}
 
 
 def _clean(value: str | None) -> str:
@@ -93,6 +94,48 @@ def filter_trusted_sources(articles: list[Article], settings: dict) -> list[Arti
     return trusted
 
 
+def _image_is_available(url: str) -> bool:
+    if not url.startswith(("http://", "https://")):
+        return False
+    try:
+        request = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": USER_AGENT,
+                "Range": "bytes=0-1023",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=6) as response:
+            return response.headers.get_content_type().startswith("image/")
+    except Exception:
+        return False
+
+
+def _normalize_image_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.netloc.lower() in BLOCKED_EMBED_HOSTS:
+        return ""
+    if "ichef.bbci.co.uk" in parsed.netloc:
+        return url.replace("/standard/240/", "/standard/1024/")
+    return url
+
+
+def validate_article_images(articles: list[Article]) -> list[Article]:
+    cache: dict[str, bool] = {}
+    for article in articles:
+        if not article.image_url:
+            continue
+        article.image_url = _normalize_image_url(article.image_url)
+        if not article.image_url:
+            continue
+        if article.image_url not in cache:
+            cache[article.image_url] = _image_is_available(article.image_url)
+        available = cache[article.image_url]
+        if not available:
+            article.image_url = ""
+    return articles
+
+
 def fetch_rss(url: str, category: str, limit: int = 25) -> list[Article]:
     """Fetch RSS or Atom while keeping the metadata needed for ranking."""
     try:
@@ -121,6 +164,17 @@ def fetch_rss(url: str, category: str, limit: int = 25) -> list[Article]:
                 or entry.findtext("{*}updated", "")
             )
             source = urllib.parse.urlparse(link).netloc
+            image_url = ""
+            for node in entry.findall("{*}link"):
+                if node.get("rel") == "enclosure" and node.get("type", "").startswith("image/"):
+                    image_url = node.get("href", "")
+                    break
+            if not image_url:
+                media = entry.find("{*}thumbnail")
+                if media is None:
+                    media = entry.find("{*}content")
+                if media is not None and media.get("url"):
+                    image_url = media.get("url", "")
         else:
             title = entry.findtext("title", "")
             description = (
@@ -130,6 +184,19 @@ def fetch_rss(url: str, category: str, limit: int = 25) -> list[Article]:
             link = entry.findtext("link", "")
             published = entry.findtext("pubDate", "")
             source = entry.findtext("source", "")
+            image_url = ""
+            media = entry.find("{*}thumbnail")
+            if media is None:
+                media = entry.find("{*}content")
+            if media is not None and media.get("url"):
+                image_url = media.get("url", "")
+            if not image_url:
+                enclosure = entry.find("enclosure")
+                if (
+                    enclosure is not None
+                    and enclosure.get("type", "").startswith("image/")
+                ):
+                    image_url = enclosure.get("url", "")
 
         title = _clean(title)
         link = _clean(link)
@@ -147,6 +214,7 @@ def fetch_rss(url: str, category: str, limit: int = 25) -> list[Article]:
                 source=_clean(source) or "Unknown source",
                 published_at=_parse_date(published),
                 category=category,
+                image_url=_clean(image_url),
             )
         )
     return articles
@@ -187,6 +255,7 @@ def fetch_newsapi(category: str, query: str, api_key: str, limit: int = 30) -> l
                 source=_clean((item.get("source") or {}).get("name")) or "NewsAPI",
                 published_at=_parse_date(item.get("publishedAt")),
                 category=category,
+                image_url=_clean(item.get("urlToImage")),
             )
         )
     return results
@@ -204,7 +273,7 @@ def fetch_news(settings: dict) -> list[Article]:
         for category, query in settings["newsapi_queries"].items():
             articles.extend(fetch_newsapi(category, query, api_key))
 
-    return filter_trusted_sources(articles, settings)
+    return validate_article_images(filter_trusted_sources(articles, settings))
 
 
 def group_by_category(articles: Iterable[Article]) -> dict[str, list[Article]]:
