@@ -41,6 +41,14 @@ the final editorial selection, and emails a source-linked digest.
 3. Copy `.env.example` to `.env` and add your keys. Gmail requires a Google App
    Password, not your normal account password. `NEWS_API_KEY` is optional.
    Without a Gemini key, the deterministic ranked fallback still delivers.
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   GitHub Actions secrets are only available inside GitHub's runners. They are
+   not downloaded to your computer, so local `python main.py` runs still require
+   this `.env` file.
 4. Edit `config.json`. Adding your name, occupation, interests, and priority
    topics materially improves the editorial choices.
 5. Test without sending:
@@ -115,9 +123,11 @@ Secrets stay in `.env`; do not commit that file.
 
 ## Run In The Cloud With The PC Shut Down
 
-The included GitHub Actions workflow runs on GitHub's servers every day at
-7:00 AM in the `Asia/Kolkata` timezone. It restores the agent's sent-story
-memory between runs and retains each preview and run log for seven days.
+The included GitHub Actions workflow is temporarily configured to run at
+06:00 UTC, which is 11:30 AM in India, for schedule testing. After testing,
+change the cron back to `30 1 * * *` for 7:00 AM IST delivery. It restores the
+agent's sent-story memory between runs and retains each preview and run log for
+seven days.
 
 1. Create a new **private** empty repository on GitHub.
 2. Push this folder:
